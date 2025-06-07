@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+        xmlns:v ="clr-namespace:KinoApplication.Views;assembly=KinoApplication"
+        x:Class="KinoApplication.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="KinoApp" Width="800" Height="600">
+
+	<Design.DataContext>
+		<vm:MainWindowViewModel/>
+	</Design.DataContext>
+
+	<Window.DataTemplates>
+		<DataTemplate x:DataType="vm:AdminViewModel">
+			<v:AdminView/>
+		</DataTemplate>
+		<DataTemplate x:DataType="vm:UserViewModel">
+			<v:UserView/>
+		</DataTemplate>
+	</Window.DataTemplates>
+
+	<StackPanel Margin="20">
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 10">
+			<Button Content="Użytkownik"   Command="{Binding ShowUserCmd}"  Margin="5"/>
+			<Button Content="Administrator" Command="{Binding ShowAdminCmd}" Margin="5"/>
+		</StackPanel>
+		<ContentControl Content="{Binding CurrentVm}"/>
+	</StackPanel>
+</Window>

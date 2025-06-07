@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:KinoApplication.ViewModels"
+             x:Class="KinoApplication.Views.UserView"
+			 x:DataType="vm:UserViewModel">
+	<UserControl.DataContext>
+		<vm:UserViewModel />
+	</UserControl.DataContext>
+
+	<StackPanel>
+		<TextBlock Text="{Binding Welcome}" FontSize="24" HorizontalAlignment="Center"/>
+	</StackPanel>
+</UserControl>
