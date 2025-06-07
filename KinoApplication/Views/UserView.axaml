@@ -1,13 +1,41 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:KinoApplication.ViewModels"
-             x:Class="KinoApplication.Views.UserView"
-			 x:DataType="vm:UserViewModel">
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+    xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+    x:Class="KinoApplication.Views.UserView"
+	x:DataType="vm:UserViewModel">
+
+	<!-- jawny DataContext -->
 	<UserControl.DataContext>
-		<vm:UserViewModel />
+		<vm:UserViewModel/>
 	</UserControl.DataContext>
 
-	<StackPanel>
-		<TextBlock Text="{Binding Welcome}" FontSize="24" HorizontalAlignment="Center"/>
+	<StackPanel Margin="20" Spacing="10" HorizontalAlignment="Center">
+
+		<TextBlock Text="Repertuar" FontSize="24" HorizontalAlignment="Center"/>
+
+		<!-- debug: pokaże ile jest elementów -->
+		<TextBlock Text="{Binding Seanse.Count, StringFormat='Seansów: {0}'}"
+				   HorizontalAlignment="Center"
+				   FontStyle="Italic"/>
+
+		<dgrid:DataGrid
+			ItemsSource="{Binding Seanse}"
+			AutoGenerateColumns="False"
+			Height="200"
+			SelectionMode="Single"
+			SelectedItem="{Binding WybranySeans}">
+			<dgrid:DataGrid.Columns>
+				<dgrid:DataGridTextColumn Header="Film" Binding="{Binding Film.Title}"/>
+				<dgrid:DataGridTextColumn Header="Sala" Binding="{Binding Sala.Name}"/>
+				<dgrid:DataGridTextColumn Header="Data"
+					Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+			</dgrid:DataGrid.Columns>
+		</dgrid:DataGrid>
+
+		<Button Content="Wybierz seans"
+				Command="{Binding WybierzSeansCmd}"
+				IsEnabled="{Binding WybranySeans, Converter={StaticResource NotNullToBoolConverter}}"/>
 	</StackPanel>
 </UserControl>

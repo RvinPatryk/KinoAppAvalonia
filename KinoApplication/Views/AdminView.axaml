@@ -1,13 +1,70 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:KinoApplication.ViewModels"
-             x:Class="KinoApplication.Views.AdminView"
-             x:DataType="vm:AdminViewModel">
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+  xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+  x:Class="KinoApplication.Views.AdminView"
+  x:DataType="vm:AdminViewModel">
+
+	<!-- jawny DataContext -->
 	<UserControl.DataContext>
-		<vm:AdminViewModel />
+		<vm:AdminViewModel/>
 	</UserControl.DataContext>
 
-	<StackPanel>
-		<TextBlock Text="{Binding Info}" FontSize="24" HorizontalAlignment="Center"/>
+	<StackPanel Margin="20" Spacing="20">
+		<!-- wyśrodkowany nagłówek -->
+		<TextBlock Text="Panel Administratora"
+				   FontSize="24"
+				   HorizontalAlignment="Center"/>
+
+		<!-- formularz dodawania seansu -->
+		<StackPanel Orientation="Horizontal"
+					Spacing="10"
+					HorizontalAlignment="Center">
+			<ComboBox Width="150"
+					  ItemsSource="{Binding Films}"
+					  SelectedItem="{Binding WybranyFilm}">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Title}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<ComboBox Width="120"
+					  ItemsSource="{Binding Sale}"
+					  SelectedItem="{Binding WybranaSala}">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Name}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<DatePicker MinWidth="220"
+						SelectedDate="{Binding DataSeansu}"/>
+
+			<Button Content="Dodaj seans"
+					Command="{Binding DodajSeansCmd}"/>
+		</StackPanel>
+
+		<!-- tabela seansów -->
+		<dgrid:DataGrid
+			ItemsSource="{Binding Seanse}"
+			AutoGenerateColumns="False"
+			Height="250"
+			HorizontalAlignment="Center">
+			<dgrid:DataGrid.Columns>
+				<dgrid:DataGridTextColumn
+					Header="Film"
+					Binding="{Binding Film.Title}"/>
+				<dgrid:DataGridTextColumn
+					Header="Sala"
+					Binding="{Binding Sala.Name}"/>
+				<dgrid:DataGridTextColumn
+					Header="Data"
+					Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+			</dgrid:DataGrid.Columns>
+		</dgrid:DataGrid>
 	</StackPanel>
 </UserControl>
