@@ -4,36 +4,39 @@
     xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
     xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
     x:Class="KinoApplication.Views.UserView"
-	x:DataType="vm:UserViewModel">
+    x:DataType="vm:UserViewModel">
 
-	<!-- jawny DataContext -->
 	<UserControl.DataContext>
 		<vm:UserViewModel/>
 	</UserControl.DataContext>
 
 	<StackPanel Margin="20" Spacing="10" HorizontalAlignment="Center">
+		<TextBlock Text="Repertuar"
+				   FontSize="24"
+				   HorizontalAlignment="Center"/>
 
-		<TextBlock Text="Repertuar" FontSize="24" HorizontalAlignment="Center"/>
-
-		<!-- debug: pokaże ile jest elementów -->
-		<TextBlock Text="{Binding Seanse.Count, StringFormat='Seansów: {0}'}"
-				   HorizontalAlignment="Center"
-				   FontStyle="Italic"/>
-
+		<!-- tylko do odczytu -->
 		<dgrid:DataGrid
 			ItemsSource="{Binding Seanse}"
 			AutoGenerateColumns="False"
-			Height="200"
+			Height="250"
+			IsReadOnly="True"
+			CanUserResizeColumns="False"
 			SelectionMode="Single"
 			SelectedItem="{Binding WybranySeans}">
 			<dgrid:DataGrid.Columns>
-				<dgrid:DataGridTextColumn Header="Film" Binding="{Binding Film.Title}"/>
-				<dgrid:DataGridTextColumn Header="Sala" Binding="{Binding Sala.Name}"/>
+				<dgrid:DataGridTextColumn Header="Film"
+										  Binding="{Binding Film.Title}"/>
+				<dgrid:DataGridTextColumn Header="Sala"
+										  Binding="{Binding Sala.Name}"/>
 				<dgrid:DataGridTextColumn Header="Data"
 					Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+				<dgrid:DataGridTextColumn Header="Cena za bilet"
+					Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
 			</dgrid:DataGrid.Columns>
 		</dgrid:DataGrid>
 
+		<!-- dalej możesz zostawić przycisk wyboru seansu -->
 		<Button Content="Wybierz seans"
 				Command="{Binding WybierzSeansCmd}"
 				IsEnabled="{Binding WybranySeans, Converter={StaticResource NotNullToBoolConverter}}"/>

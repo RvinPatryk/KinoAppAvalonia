@@ -1,5 +1,6 @@
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using Avalonia.Interactivity;
+using KinoApplication.ViewModels;
 
 namespace KinoApplication.Views
 {
@@ -8,9 +9,15 @@ namespace KinoApplication.Views
         public AdminView()
         {
             InitializeComponent();
+            EditFilmBtn.Click += OpenEditWindow;
         }
 
-        private void InitializeComponent()
-            => AvaloniaXamlLoader.Load(this);
+        private void OpenEditWindow(object? sender, RoutedEventArgs e)
+        {
+            var vm = (AdminViewModel)DataContext!;
+            if (vm.SelectedFilm is null) return;
+            var dlg = new EditFilmWindow(vm);
+            dlg.ShowDialog((Window)this.VisualRoot!);
+        }
     }
 }

@@ -1,0 +1,31 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:m="clr-namespace:KinoApplication.Models;assembly=KinoApplication"
+    x:Class="KinoApplication.Views.EditFilmWindow"
+    x:DataType="m:Film"
+    x:CompileBindings="True"
+    Title="Edytuj film"
+    Width="400" Height="300">
+
+	<StackPanel Margin="10" Spacing="8">
+		<TextBlock Text="Tytuł:"/>
+		<TextBox Text="{Binding Title, Mode=TwoWay}"/>
+
+		<TextBlock Text="Cena:"/>
+		<TextBox Text="{Binding Price, Mode=TwoWay}"/>
+
+		<TextBlock Text="Opis:"/>
+		<TextBox Text="{Binding Description, Mode=TwoWay}"
+				 AcceptsReturn="True" Height="80"/>
+
+		<StackPanel Orientation="Horizontal"
+					HorizontalAlignment="Right"
+					Spacing="10">
+			<Button Name="SaveBtn"    Content="Zapisz zmiany"/>
+			<Button Name="DeleteBtn"  Content="Usuń film"
+					Background="Red" Foreground="White"/>
+			<Button Name="CancelBtn"  Content="Anuluj"/>
+		</StackPanel>
+	</StackPanel>
+</Window>

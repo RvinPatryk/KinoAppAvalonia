@@ -1,101 +1,174 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.ObjectModel;
-using ReactiveUI;
 using System.Reactive;
+using System.Reactive.Linq;
+using ReactiveUI;
+using KinoApplication.Models;
+using KinoApplication.Services;
 
 namespace KinoApplication.ViewModels
 {
-    public class Film
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = "";
-    }
-
-    public class Sala
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-    }
-
-    public class Seans
-    {
-        public Film Film { get; set; } = null!;
-        public Sala Sala { get; set; } = null!;
-        public DateTimeOffset Data { get; set; }
-    }
-
     public class AdminViewModel : ReactiveObject
     {
+        // Kolekcje
         public ObservableCollection<Film> Films { get; }
-            = new ObservableCollection<Film>
-            {
-                new() { Id = 1, Title = "Matrix" },
-                new() { Id = 2, Title = "Incepcja" },
-                new() { Id = 3, Title = "Interstellar" }
-            };
-
         public ObservableCollection<Sala> Sale { get; }
-            = new ObservableCollection<Sala>
-            {
-                new() { Id = 1, Name = "Sala 1" },
-                new() { Id = 2, Name = "Sala 2" }
-            };
-
         public ObservableCollection<Seans> Seanse { get; }
-            = new ObservableCollection<Seans>();
 
-        private Film? _wybranyFilm;
-        public Film? WybranyFilm
+        // Pola do dodawania filmu
+        private string _newFilmTitle = "";
+        public string NewFilmTitle
         {
-            get => _wybranyFilm;
-            set => this.RaiseAndSetIfChanged(ref _wybranyFilm, value);
+            get => _newFilmTitle;
+            set => this.RaiseAndSetIfChanged(ref _newFilmTitle, value);
         }
 
-        private Sala? _wybranaSala;
-        public Sala? WybranaSala
+        private string _newFilmPrice = "";
+        public string NewFilmPrice
         {
-            get => _wybranaSala;
-            set => this.RaiseAndSetIfChanged(ref _wybranaSala, value);
+            get => _newFilmPrice;
+            set => this.RaiseAndSetIfChanged(ref _newFilmPrice, value);
         }
 
-        private DateTimeOffset _dataSeansu = DateTimeOffset.Now;
-        public DateTimeOffset DataSeansu
+        private string _newFilmDescription = "";
+        public string NewFilmDescription
         {
-            get => _dataSeansu;
-            set => this.RaiseAndSetIfChanged(ref _dataSeansu, value);
+            get => _newFilmDescription;
+            set => this.RaiseAndSetIfChanged(ref _newFilmDescription, value);
         }
 
+        // Wybrany w liście film (do edycji)
+        private Film? _selectedFilm;
+        public Film? SelectedFilm
+        {
+            get => _selectedFilm;
+            set => this.RaiseAndSetIfChanged(ref _selectedFilm, value);
+        }
+
+        // Pola do dodawania seansu
+        public Film? NewWybranyFilm { get; set; }
+        public Sala? NewWybranaSala { get; set; }
+        private DateTimeOffset? _dataSeansuDate;
+        public DateTimeOffset? DataSeansuDate
+        {
+            get => _dataSeansuDate;
+            set => this.RaiseAndSetIfChanged(ref _dataSeansuDate, value);
+        }
+        private TimeSpan _dataSeansuTime;
+        public TimeSpan DataSeansuTime
+        {
+            get => _dataSeansuTime;
+            set => this.RaiseAndSetIfChanged(ref _dataSeansuTime, value);
+        }
+
+        // Komendy
+        public ReactiveCommand<Unit, Unit> AddFilmCmd { get; }
+        public ReactiveCommand<Unit, Unit> SaveSelectedFilmCmd { get; }
+        public ReactiveCommand<Unit, Unit> DeleteFilmCmd { get; }
+        public ReactiveCommand<Unit, Unit> CancelEditCmd { get; }
         public ReactiveCommand<Unit, Unit> DodajSeansCmd { get; }
 
         public AdminViewModel()
         {
-            // komenda dodająca nowy seans
-            DodajSeansCmd = ReactiveCommand.Create(() =>
+            // 1) Wczytaj lub utwórz JSON
+            var data = RepertuarService.Load();
+
+            // 2) Inicjalizacja kolekcji
+            Films = new ObservableCollection<Film>(data.Films);
+            Sale = new ObservableCollection<Sala>(data.Sale);
+            Seanse = new ObservableCollection<Seans>(data.Seanse);
+
+            // 3) Domyślne sale jeśli JSON ich nie zawierał
+            if (!Sale.Any())
             {
-                if (WybranyFilm is null || WybranaSala is null)
+                Sale.Add(new Sala { Id = 1, Name = "Sala 1" });
+                Sale.Add(new Sala { Id = 2, Name = "Sala 2" });
+                Sale.Add(new Sala { Id = 3, Name = "Sala 3" });
+            }
+
+            // 4) Domyślna data i czas dla seansu
+            DataSeansuDate = DateTimeOffset.Now.Date.AddDays(5);
+            DataSeansuTime = new TimeSpan(17, 0, 0);
+
+            // 5) Dodawanie nowego filmu
+            AddFilmCmd = ReactiveCommand.Create(() =>
+            {
+                if (string.IsNullOrWhiteSpace(NewFilmTitle) ||
+                    !decimal.TryParse(NewFilmPrice, out var price))
                     return;
 
-                Seanse.Add(new Seans
+                var nextId = Films.Any() ? Films.Max(f => f.Id) + 1 : 1;
+                Films.Add(new Film
                 {
-                    Film = WybranyFilm,
-                    Sala = WybranaSala,
-                    Data = DataSeansu
+                    Id = nextId,
+                    Title = NewFilmTitle.Trim(),
+                    Price = price,
+                    Description = NewFilmDescription.Trim()
                 });
+
+                NewFilmTitle = "";
+                NewFilmPrice = "";
+                NewFilmDescription = "";
+
+                SaveAll();
             });
 
-            // kilka przykładowych seansów na start
-            var jutro = DateTimeOffset.Now.Date.AddDays(1);
-            Seanse.Add(new Seans
+            // 6) Zapis edytowanego filmu
+            SaveSelectedFilmCmd = ReactiveCommand.Create(
+                () =>
+                {
+                    SaveAll();
+                    SelectedFilm = null;
+                },
+                this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
+            );
+
+            // 7) Usuwanie filmu
+            DeleteFilmCmd = ReactiveCommand.Create(
+                () =>
+                {
+                    if (SelectedFilm is null) return;
+                    Films.Remove(SelectedFilm);
+                    SaveAll();
+                    SelectedFilm = null;
+                },
+                this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
+            );
+
+            // 8) Anulowanie edycji
+            CancelEditCmd = ReactiveCommand.Create(() =>
             {
-                Film = Films[0],
-                Sala = Sale[0],
-                Data = jutro.AddHours(18)
+                SelectedFilm = null;
             });
-            Seanse.Add(new Seans
+
+            // 9) Dodawanie seansu
+            DodajSeansCmd = ReactiveCommand.Create(() =>
             {
-                Film = Films[1],
-                Sala = Sale[1],
-                Data = jutro.AddHours(20).AddMinutes(30)
+                if (NewWybranyFilm is null ||
+                    NewWybranaSala is null ||
+                    DataSeansuDate is null)
+                    return;
+
+                var dto = DataSeansuDate.Value.Add(DataSeansuTime);
+                Seanse.Add(new Seans
+                {
+                    Film = NewWybranyFilm,
+                    Sala = NewWybranaSala,
+                    Data = dto
+                });
+
+                SaveAll();
+            });
+        }
+
+        private void SaveAll()
+        {
+            RepertuarService.Save(new RepertuarData
+            {
+                Films = Films.ToArray(),
+                Sale = Sale.ToArray(),
+                Seanse = Seanse.ToArray()
             });
         }
     }
