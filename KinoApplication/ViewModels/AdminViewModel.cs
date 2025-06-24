@@ -124,16 +124,28 @@ namespace KinoApplication.ViewModels
                 this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
             );
 
+
+
             // 7) Usuwanie filmu
             DeleteFilmCmd = ReactiveCommand.Create(
                 () =>
                 {
-                    if (SelectedFilm is null) return;
+                    if (SelectedFilm is null)
+                        return;
+
+                    // failsafe: jeżeli są seanse tego filmu, pomiń usuwanie
+                    var hasSeanse = Seanse.Any(s => s.Film.Id == SelectedFilm.Id);
+                    if (hasSeanse)
+                        return;
+
                     Films.Remove(SelectedFilm);
                     SaveAll();
                     SelectedFilm = null;
                 },
-                this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
+
+                // komenda dostępna tylko gdy wybrano jakiś film
+                this.WhenAnyValue(vm => vm.SelectedFilm)
+                    .Select(f => f != null)
             );
 
             // 8) Anulowanie edycji

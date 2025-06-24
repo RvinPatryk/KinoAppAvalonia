@@ -1,24 +1,31 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using KinoApplication.Models;
 using KinoApplication.ViewModels;
+using System.Linq;
 using System;
 
 namespace KinoApplication.Views
 {
     public partial class EditFilmWindow : Window
     {
-        private readonly Film _original;
-        private readonly Film _tempCopy;
-        private readonly AdminViewModel _vm;
+        // zapobiegamy CS8618 przez inicjalizację „null!” – zostanie ustawione w drugim ctorze
+        private readonly AdminViewModel _vm = null!;
+        private readonly Film _original = null!;
+        private readonly Film _tempCopy = null!;
 
-        public EditFilmWindow() => InitializeComponent();
+        public EditFilmWindow()
+        {
+            InitializeComponent();
+        }
 
         public EditFilmWindow(AdminViewModel vm) : this()
         {
             _vm = vm;
-            _original = vm.SelectedFilm!;   // zachowaj referencję do oryginału
+            _original = vm.SelectedFilm!;
 
-            // zrób płytką kopię (bez ObservableCollection, tylko pola)
+            // tworzę kopię
             _tempCopy = new Film
             {
                 Id = _original.Id,
@@ -27,32 +34,45 @@ namespace KinoApplication.Views
                 Description = _original.Description
             };
 
-            // na kopii będzie działać Twoje x:DataType bindings
             DataContext = _tempCopy;
 
             SaveBtn.Click += (_, __) =>
             {
-                // przenieś zmiany z kopii do oryginału
+                // przenosimy zmiany z kopii do oryginału
                 _original.Title = _tempCopy.Title;
                 _original.Price = _tempCopy.Price;
                 _original.Description = _tempCopy.Description;
 
-                // zapisz JSON i zamknij
                 _vm.SaveSelectedFilmCmd.Execute().Subscribe();
                 Close();
             };
 
-            DeleteBtn.Click += (_, __) =>
+            DeleteBtn.Click += async (_, __) =>
             {
+                bool hasSeanse = _vm.Seanse.Any(s => s.Film.Id == _original.Id);
+                if (hasSeanse)
+                {
+                    var alert = new Window
+                    {
+                        Title = "Błąd",
+                        Width = 300,
+                        Height = 120,
+                        Content = new TextBlock
+                        {
+                            Text = "Nie można usunąć filmu, są do niego przypisane seanse.",
+                            TextWrapping = TextWrapping.Wrap,
+                            Margin = new Thickness(10)
+                        }
+                    };
+                    await alert.ShowDialog((Window)this.VisualRoot!);
+                    return;
+                }
+
                 _vm.DeleteFilmCmd.Execute().Subscribe();
                 Close();
             };
 
-            CancelBtn.Click += (_, __) =>
-            {
-                // nie dotykaj oryginału – po prostu zamknij okno
-                Close();
-            };
+            CancelBtn.Click += (_, __) => Close();
         }
     }
 }

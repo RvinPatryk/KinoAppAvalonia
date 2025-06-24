@@ -1,0 +1,68 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+    xmlns:conv="clr-namespace:KinoApplication.Converters;assembly=KinoApplication"
+    x:Class="KinoApplication.Views.SelectSeatsWindow"
+    x:DataType="vm:UserViewModel"
+    x:CompileBindings="True"
+    Title="Wybór miejsc"
+    Width="600" Height="600">
+
+	<StackPanel Margin="10" Spacing="12">
+		<TextBlock
+		  Text="{Binding WybranySeans.Film.Title}"
+		  FontSize="20" FontWeight="Bold"
+		  TextAlignment="Center"/>
+
+		<TextBlock
+		  Text="{Binding WybranySeans.Data, StringFormat='Data seansu: {0:dd.MM.yyyy HH:mm}'}"
+		  FontStyle="Italic"
+		  HorizontalAlignment="Center"/>
+
+		<TextBlock
+		  Text="{Binding WybranySeans.Sala.Name}"
+		  FontStyle="Italic"
+		  HorizontalAlignment="Center"/>
+
+		<ScrollViewer VerticalScrollBarVisibility="Auto" Height="320">
+			<ItemsControl ItemsSource="{Binding RowLayouts}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="vm:RowSeatsViewModel">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<TextBlock
+							  Text="{Binding RowLetter}"
+							  Width="24"
+							  VerticalAlignment="Center"/>
+
+							<ItemsControl ItemsSource="{Binding SeatsInRow}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<StackPanel Orientation="Horizontal"/>
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<ContentControl
+										  Content="{Binding ., Converter={StaticResource SeatOrGapConverter}}"/>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+
+		<StackPanel Orientation="Horizontal"
+					HorizontalAlignment="Right"
+					Spacing="10"
+					Margin="0,10,0,0">
+			<Button x:Name="ConfirmBtn"
+					Content="Rezerwuj miejsca"
+					IsEnabled="{Binding RowLayouts, Converter={StaticResource AnySelectedConverter}}"/>
+			<Button x:Name="CancelBtn" Content="Anuluj"/>
+		</StackPanel>
+	</StackPanel>
+</Window>
