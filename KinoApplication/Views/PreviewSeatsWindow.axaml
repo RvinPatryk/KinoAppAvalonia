@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+		xmlns:conv="clr-namespace:KinoApplication.Converters;assembly=KinoApplication"
+		x:Class="KinoApplication.Views.PreviewSeatsWindow"
+		x:DataType="vm:AdminViewModel"
+		x:CompileBindings="True"
+		Title="Podgląd zajętych miejsc"
+		Width="420" Height="600">
+
+	<StackPanel Margin="10" Spacing="12">
+		<TextBlock Text="Podgląd zajętych miejsc" FontSize="20" FontWeight="Bold" TextAlignment="Center"/>
+
+		<TextBlock Text="{Binding BookedSeats,   StringFormat='Zajętych miejsc: {0}'}"/>
+		<TextBlock Text="{Binding TotalSeats,    StringFormat='Łącznie miejsc: {0}'}"/>
+		<TextBlock Text="{Binding OccupancyRate, StringFormat='Obłożenie: {0:P0}'}"/>
+
+		<ScrollViewer VerticalScrollBarVisibility="Auto" Height="320">
+			<ItemsControl ItemsSource="{Binding RowLayoutsPreview}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="vm:RowSeatsViewModel">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<TextBlock Text="{Binding RowLetter}" Width="24"/>
+							<ItemsControl ItemsSource="{Binding SeatsInRow}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<StackPanel Orientation="Horizontal"/>
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<ContentControl Content="{Binding ., Converter={StaticResource SeatOrGapConverter}}"/>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+
+		<Button Content="Zamknij"
+        HorizontalAlignment="Right"
+        Click="CloseButton_Click"/>
+	</StackPanel>
+</Window>

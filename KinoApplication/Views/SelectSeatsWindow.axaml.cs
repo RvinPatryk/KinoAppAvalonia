@@ -7,9 +7,13 @@ namespace KinoApplication.Views
 {
     public partial class SelectSeatsWindow : Window
     {
-        public SelectSeatsWindow() => InitializeComponent();
+        public SelectSeatsWindow()
+        {
+            InitializeComponent();
+        }
 
-        public SelectSeatsWindow(UserViewModel vm) : this()
+        public SelectSeatsWindow(UserViewModel vm)
+            : this()
         {
             DataContext = vm;
             vm.LoadSeats();
@@ -19,9 +23,10 @@ namespace KinoApplication.Views
                 vm.ConfirmBookingCmd.Execute().Subscribe();
                 Close();
             };
+
             CancelBtn.Click += (_, __) =>
             {
-                vm.LoadSeats(); // odrzuć zaznaczenia
+                vm.LoadSeats();
                 Close();
             };
         }

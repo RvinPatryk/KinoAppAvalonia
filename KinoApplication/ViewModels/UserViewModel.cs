@@ -12,12 +12,20 @@ namespace KinoApplication.ViewModels
 {
     public class UserViewModel : ReactiveObject
     {
+        public string CurrentUser { get; } = "user1";
+
         public ObservableCollection<Seans> Seanse { get; }
+
         private Seans? _wybranySeans;
         public Seans? WybranySeans
         {
             get => _wybranySeans;
-            set => this.RaiseAndSetIfChanged(ref _wybranySeans, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _wybranySeans, value);
+                LoadSeats();
+                this.RaisePropertyChanged(nameof(TotalPayment));
+            }
         }
 
         public ObservableCollection<Seat> Seats { get; } = new();
@@ -25,8 +33,12 @@ namespace KinoApplication.ViewModels
 
         private List<Booking> _allBookings;
 
-        public ReactiveCommand<Unit, Unit> WybierzSeansCmd { get; }
         public ReactiveCommand<Unit, Unit> ConfirmBookingCmd { get; }
+
+        // nowa właściwość podsumowania
+        public decimal TotalPayment =>
+            (WybranySeans?.Film.Price ?? 0m)
+          * Seats.Count(s => s.Status == SeatStatus.Selected);
 
         public UserViewModel()
         {
@@ -34,24 +46,29 @@ namespace KinoApplication.ViewModels
             Seanse = new ObservableCollection<Seans>(data.Seanse);
             _allBookings = BookingService.Load();
 
-            WybierzSeansCmd = ReactiveCommand.Create(LoadSeats,
-                this.WhenAnyValue(vm => vm.WybranySeans).Select(s => s != null));
-
+            // komenda potwierdzająca rezerwację
             ConfirmBookingCmd = ReactiveCommand.Create(() =>
             {
                 if (WybranySeans == null) return;
                 var key = $"{WybranySeans.Film.Id}_{WybranySeans.Sala.Id}_{WybranySeans.Data.ToUnixTimeSeconds()}";
-                _allBookings.RemoveAll(b => b.SeansKey == key);
+
                 foreach (var seat in Seats.Where(s => s.Status == SeatStatus.Selected))
                 {
-                    _allBookings.Add(new Booking { SeansKey = key, Row = seat.Row, Column = seat.Column });
+                    _allBookings.Add(new Booking
+                    {
+                        SeansKey = key,
+                        Row = seat.Row,
+                        Column = seat.Column,
+                        User = CurrentUser
+                    });
                     seat.Status = SeatStatus.Booked;
                 }
+
                 BookingService.Save(_allBookings);
+                this.RaisePropertyChanged(nameof(TotalPayment));
             },
-            this.WhenAnyValue(vm => vm.RowLayouts.Count)
-                .Select(_ => RowLayouts.Any(
-                   rl => rl.SeatsInRow.Any(s => s?.Status == SeatStatus.Selected)))
+            this.WhenAnyValue(vm => vm.Seats.Count)
+                .Select(_ => Seats.Any(s => s.Status == SeatStatus.Selected))
             );
         }
 
@@ -80,7 +97,12 @@ namespace KinoApplication.ViewModels
                     var status = booked.Any(b => b.Row == row.RowNumber && b.Column == col)
                                  ? SeatStatus.Booked
                                  : SeatStatus.Free;
-                    Seats.Add(new Seat(row.RowNumber, col, status));
+                    var seat = new Seat(row.RowNumber, col, status);
+                    Seats.Add(seat);
+                    // subskrypcja zmiany statusu
+                    seat.Changed
+                        .Where(x => x.PropertyName == nameof(seat.Status))
+                        .Subscribe(_ => this.RaisePropertyChanged(nameof(TotalPayment)));
                 }
             }
 
@@ -94,6 +116,9 @@ namespace KinoApplication.ViewModels
                 ).ToList();
                 RowLayouts.Add(new RowSeatsViewModel(row.RowLetter, list));
             }
+
+            // odświeżenie podsumowania
+            this.RaisePropertyChanged(nameof(TotalPayment));
         }
 
         private class BookingComparer : IEqualityComparer<Booking>

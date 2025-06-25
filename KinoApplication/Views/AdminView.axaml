@@ -59,12 +59,12 @@
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 				</ListBox>
-				<!-- dodaj obok ListBox w lewym panelu -->
-				<Button Grid.Row="1" Grid.Column="0"
-						Content="Edytuj film"
+
+				<Button Content="Edytuj film"
 						IsEnabled="{Binding SelectedFilm, Converter={StaticResource NotNullToBoolConverter}}"
 						x:Name="EditFilmBtn"
 						Margin="0,5,0,0"/>
+
 			</StackPanel>
 		</Border>
 
@@ -116,6 +116,14 @@
 				   Text="Repertuar" FontSize="20"
 				   HorizontalAlignment="Center"
 				   Margin="0,20,0,5"/>
+		
+		<!-- Przycisk podglądu zajętych miejsc -->
+		<Button Grid.Row="3" Grid.ColumnSpan="2"
+				Content="Podgląd zajętych miejsc"
+				HorizontalAlignment="Center"
+				Margin="0,5,0,10"
+				IsEnabled="{Binding SelectedSeans, Converter={StaticResource NotNullToBoolConverter}}"
+				Click="OnPreviewSeats"/>
 
 		<!-- Tabela seansów -->
 		<dgrid:DataGrid Grid.Row="3" Grid.ColumnSpan="2"
@@ -124,15 +132,19 @@
 						IsReadOnly="True"
 						CanUserResizeColumns="False"
 						Height="250"
-						HorizontalAlignment="Center">
+						HorizontalAlignment="Center"
+						SelectedItem="{Binding SelectedSeans}">
 			<dgrid:DataGrid.Columns>
-				<dgrid:DataGridTextColumn Header="Film" Binding="{Binding Film.Title}"/>
-				<dgrid:DataGridTextColumn Header="Sala" Binding="{Binding Sala.Name}"/>
-				<dgrid:DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
-				<dgrid:DataGridTextColumn Header="Cena za bilet" Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
+				<dgrid:DataGridTextColumn Header="Film"
+										  Binding="{Binding Film.Title}"/>
+				<dgrid:DataGridTextColumn Header="Sala"
+										  Binding="{Binding Sala.Name}"/>
+				<dgrid:DataGridTextColumn Header="Data"
+										  Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+				<dgrid:DataGridTextColumn Header="Cena za bilet"
+										  Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
 			</dgrid:DataGrid.Columns>
 		</dgrid:DataGrid>
-
 
 	</Grid>
 </UserControl>

@@ -19,5 +19,13 @@ namespace KinoApplication.Views
             var dlg = new EditFilmWindow(vm);
             dlg.ShowDialog((Window)this.VisualRoot!);
         }
+        private void OnPreviewSeats(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is AdminViewModel vm && vm.SelectedSeans != null)
+            {
+                var dlg = new PreviewSeatsWindow(vm);
+                dlg.ShowDialog((Window)this.VisualRoot!);
+            }
+        }
     }
 }
