@@ -28,10 +28,13 @@ namespace KinoApplication.ViewModels
             }
         }
 
+
         public ObservableCollection<Seat> Seats { get; } = new();
         public ObservableCollection<RowSeatsViewModel> RowLayouts { get; } = new();
 
         private List<Booking> _allBookings;
+
+        public ObservableCollection<ReservationViewModel> Reservations { get; }
 
         public ReactiveCommand<Unit, Unit> ConfirmBookingCmd { get; }
 
@@ -45,6 +48,10 @@ namespace KinoApplication.ViewModels
             var data = RepertuarService.Load();
             Seanse = new ObservableCollection<Seans>(data.Seanse);
             _allBookings = BookingService.Load();
+
+            Reservations = new ObservableCollection<ReservationViewModel>(
+               _allBookings.Select(b => new ReservationViewModel(b, Seanse))
+           );
 
             // komenda potwierdzająca rezerwację
             ConfirmBookingCmd = ReactiveCommand.Create(() =>
@@ -65,6 +72,11 @@ namespace KinoApplication.ViewModels
                 }
 
                 BookingService.Save(_allBookings);
+
+                Reservations.Clear();
+                foreach (var r in _allBookings.Select(b => new ReservationViewModel(b, Seanse)))
+                    Reservations.Add(r);
+
                 this.RaisePropertyChanged(nameof(TotalPayment));
             },
             this.WhenAnyValue(vm => vm.Seats.Count)

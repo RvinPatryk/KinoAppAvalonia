@@ -1,150 +1,182 @@
 <UserControl
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
-    xmlns:m="clr-namespace:KinoApplication.Models;assembly=KinoApplication"
-    xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
-    x:Class="KinoApplication.Views.AdminView"
-    x:DataType="vm:AdminViewModel"
-    x:CompileBindings="True">
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+  xmlns:conv="clr-namespace:KinoApplication.Converters;assembly=KinoApplication"
+  xmlns:m="clr-namespace:KinoApplication.Models;assembly=KinoApplication"
+  xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+  x:Class="KinoApplication.Views.AdminView"
+  x:DataType="vm:AdminViewModel"
+  x:CompileBindings="True"
+  Background="Black">
+
+	<UserControl.Resources>
+		<conv:InverseBooleanConverter x:Key="InverseBool"/>
+		<StaticResourceExtension x:Key="NotNullToBoolConverter" ResourceKey="NotNullToBoolConverter" />
+	</UserControl.Resources>
 
 	<UserControl.DataContext>
 		<vm:AdminViewModel/>
 	</UserControl.DataContext>
 
 	<Grid Margin="20">
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="*"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
+		<!-- Logowanie -->
+		<StackPanel
+		  IsVisible="{Binding IsAuthenticated, Converter={StaticResource InverseBool}}"
+		  HorizontalAlignment="Center"
+		  VerticalAlignment="Center"
+		  Spacing="8"
+		  Width="300">
+			<TextBlock Text="Logowanie administratora"
+					   FontSize="18"
+					   HorizontalAlignment="Center"/>
+			<TextBlock Text="Login:"/>
+			<TextBox Text="{Binding Username, Mode=TwoWay}" Watermark="admin"/>
+			<TextBlock Text="Hasło:"/>
+			<TextBox Text="{Binding Password, Mode=TwoWay}"
+					 PasswordChar="●"
+					 Watermark="admin"/>
+			<Button Content="Zaloguj"
+					Command="{Binding LoginCmd}"
+					HorizontalAlignment="Right"/>
+		</StackPanel>
 
-		<!-- Nagłówek -->
-		<TextBlock Grid.Row="0" Grid.ColumnSpan="2"
-				   Text="Panel Administratora"
-				   FontSize="24" HorizontalAlignment="Center"
-				   Margin="0,0,0,10"/>
+		<!-- Główny panel admina -->
+		<ScrollViewer
+		  IsVisible="{Binding IsAuthenticated}"
+		  VerticalScrollBarVisibility="Auto">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="1*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
 
-		<!-- Lewy panel: Dodaj film -->
-		<Border Grid.Row="1" Grid.Column="0"
-				BorderBrush="Gray" BorderThickness="1"
-				Padding="10" Margin="5" MinHeight="200">
-			<StackPanel Spacing="6">
-				<TextBlock Text="Dodaj film:" FontWeight="Bold"/>
-				<TextBlock Text="Tytuł:"/>
-				<TextBox Text="{Binding NewFilmTitle}" Watermark="Tytuł filmu"/>
-				<TextBlock Text="Cena:"/>
-				<TextBox Text="{Binding NewFilmPrice}" Watermark="Cena (np. 12.50)"/>
-				<TextBlock Text="Opis:"/>
-				<TextBox Text="{Binding NewFilmDescription}"
-						 AcceptsReturn="True" Height="60"
-						 Watermark="Krótki opis"/>
-				<Button Content="Dodaj film" Command="{Binding AddFilmCmd}"/>
+				<!-- Nagłówek -->
+				<TextBlock Grid.Row="0"
+						   Grid.ColumnSpan="2"
+						   Text="Panel Administratora"
+						   FontSize="24"
+						   Foreground="White"
+						   HorizontalAlignment="Center"
+						   Margin="0,0,0,10"/>
 
-				<ListBox ItemsSource="{Binding Films}"
-						 SelectedItem="{Binding SelectedFilm}"
-						 Height="120" Margin="0,10,0,0">
-					<ListBox.ItemTemplate>
-						<DataTemplate x:DataType="m:Film">
-							<StackPanel>
-								<TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
-								<TextBlock Text="{Binding Price, StringFormat='${0:0.00}'}"/>
-								<TextBlock FontStyle="Italic" FontSize="12" Text="{Binding Description}"/>
-							</StackPanel>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
+				<!-- Lewy panel: Dodaj film -->
+				<Border Grid.Row="1" Grid.Column="0"
+						BorderBrush="Gray" BorderThickness="1"
+						Padding="10" Margin="5">
+					<StackPanel Spacing="6">
+						<TextBlock Text="Dodaj film:" FontWeight="Bold" Foreground="White"/>
+						<TextBlock Text="Tytuł:" Foreground="White"/>
+						<TextBox Text="{Binding NewFilmTitle}" Watermark="Tytuł filmu"/>
+						<TextBlock Text="Cena:" Foreground="White"/>
+						<TextBox Text="{Binding NewFilmPrice}" Watermark="Cena (np. 12.50)"/>
+						<TextBlock Text="Opis:" Foreground="White"/>
+						<TextBox Text="{Binding NewFilmDescription}"
+								 AcceptsReturn="True" Height="60"
+								 Watermark="Krótki opis"/>
+						<Button Content="Dodaj film" Command="{Binding AddFilmCmd}"/>
 
-				<Button Content="Edytuj film"
-						IsEnabled="{Binding SelectedFilm, Converter={StaticResource NotNullToBoolConverter}}"
-						x:Name="EditFilmBtn"
-						Margin="0,5,0,0"/>
+						<ListBox ItemsSource="{Binding Films}"
+								 SelectedItem="{Binding SelectedFilm}"
+								 Height="120" Margin="0,10,0,0">
+							<ListBox.ItemTemplate>
+								<DataTemplate x:DataType="m:Film">
+									<StackPanel>
+										<TextBlock Text="{Binding Title}"
+												   FontWeight="SemiBold"
+												   Foreground="White"/>
+										<TextBlock Text="{Binding Price, StringFormat='${0:0.00}'}"
+												   Foreground="White"/>
+										<TextBlock Text="{Binding Description}"
+												   FontStyle="Italic"
+												   FontSize="12"
+												   Foreground="White"/>
+									</StackPanel>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
 
-			</StackPanel>
-		</Border>
+						<Button x:Name="EditFilmBtn"
+								Content="Edytuj film"
+								IsEnabled="{Binding SelectedFilm, Converter={StaticResource NotNullToBoolConverter}}"
+								Margin="0,5,0,0"/>
+					</StackPanel>
+				</Border>
 
-		<!-- Prawy panel: Dodaj seans -->
-		<Border Grid.Row="1" Grid.Column="1"
-				BorderBrush="Gray" BorderThickness="1"
-				Padding="10" Margin="5" MinHeight="200">
-			<StackPanel Spacing="6">
-				<TextBlock Text="Dodaj seans:" FontWeight="Bold"/>
-				<TextBlock Text="Film:"/>
-				<ComboBox Width="150"
-						  ItemsSource="{Binding Films}"
-						  SelectedItem="{Binding NewWybranyFilm}">
-					<ComboBox.ItemTemplate>
-						<DataTemplate x:DataType="m:Film">
-							<TextBlock Text="{Binding Title}"/>
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
-				</ComboBox>
+				<!-- Prawy panel: Dodaj seans -->
+				<Border Grid.Row="1" Grid.Column="1"
+						BorderBrush="Gray" BorderThickness="1"
+						Padding="10" Margin="5">
+					<StackPanel Spacing="6">
+						<TextBlock Text="Dodaj seans:" FontWeight="Bold" Foreground="White"/>
+						<TextBlock Text="Film:" Foreground="White"/>
+						<ComboBox Width="150"
+								  ItemsSource="{Binding Films}"
+								  SelectedItem="{Binding NewWybranyFilm}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="m:Film">
+									<TextBlock Text="{Binding Title}" Foreground="White"/>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<TextBlock Text="Sala:" Foreground="White"/>
+						<ComboBox Width="120"
+								  ItemsSource="{Binding Sale}"
+								  SelectedItem="{Binding NewWybranaSala}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="m:Sala">
+									<TextBlock Text="{Binding Name}" Foreground="White"/>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<TextBlock Text="Data seansu:" Foreground="White"/>
+						<DatePicker SelectedDate="{Binding DataSeansuDate}"
+									DayFormat="dd" MonthFormat="MMMM" YearFormat="yyyy"/>
+						<TextBlock Text="Godzina:" Foreground="White"/>
+						<TimePicker SelectedTime="{Binding DataSeansuTime}"/>
+						<Button Content="Dodaj seans" Command="{Binding DodajSeansCmd}"/>
+					</StackPanel>
+				</Border>
 
-				<TextBlock Text="Sala:"/>
-				<ComboBox Width="120"
-						  ItemsSource="{Binding Sale}"
-						  SelectedItem="{Binding NewWybranaSala}">
-					<ComboBox.ItemTemplate>
-						<DataTemplate x:DataType="m:Sala">
-							<TextBlock Text="{Binding Name}"/>
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
-				</ComboBox>
+				<!-- Repertuar + podgląd seansu -->
+				<Border Grid.Row="2" Grid.ColumnSpan="2"
+						BorderBrush="Gray" BorderThickness="1"
+						Padding="10" Margin="0,10,0,0">
+					<StackPanel>
+						<TextBlock Text="Repertuar"
+								   FontSize="20"
+								   Foreground="White"
+								   HorizontalAlignment="Center"/>
+						<dgrid:DataGrid ItemsSource="{Binding Seanse}"
+										SelectedItem="{Binding SelectedSeans}"
+										AutoGenerateColumns="False"
+										IsReadOnly="True"
+										CanUserResizeColumns="False"
+										Margin="0,10,0,10">
+							<dgrid:DataGrid.Columns>
+								<dgrid:DataGridTextColumn Header="Film"
+														  Binding="{Binding Film.Title}"/>
+								<dgrid:DataGridTextColumn Header="Sala"
+														  Binding="{Binding Sala.Name}"/>
+								<dgrid:DataGridTextColumn Header="Data"
+														  Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+								<dgrid:DataGridTextColumn Header="Cena"
+														  Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
+							</dgrid:DataGrid.Columns>
+						</dgrid:DataGrid>
 
-				<TextBlock Text="Data seansu:"/>
-				<DatePicker SelectedDate="{Binding DataSeansuDate}"
-							MinWidth="220"
-							DayFormat="dd"
-							MonthFormat="MMMM"
-							YearFormat="yyyy"/>
-
-				<TextBlock Text="Godzina:"/>
-				<TimePicker SelectedTime="{Binding DataSeansuTime}"
-							MinWidth="100"/>
-
-				<Button Content="Dodaj seans" Command="{Binding DodajSeansCmd}"/>
-			</StackPanel>
-		</Border>
-
-		<!-- Nagłówek repertuaru -->
-		<TextBlock Grid.Row="2" Grid.ColumnSpan="2"
-				   Text="Repertuar" FontSize="20"
-				   HorizontalAlignment="Center"
-				   Margin="0,20,0,5"/>
-		
-		<!-- Przycisk podglądu zajętych miejsc -->
-		<Button Grid.Row="3" Grid.ColumnSpan="2"
-				Content="Podgląd zajętych miejsc"
-				HorizontalAlignment="Center"
-				Margin="0,5,0,10"
-				IsEnabled="{Binding SelectedSeans, Converter={StaticResource NotNullToBoolConverter}}"
-				Click="OnPreviewSeats"/>
-
-		<!-- Tabela seansów -->
-		<dgrid:DataGrid Grid.Row="3" Grid.ColumnSpan="2"
-						ItemsSource="{Binding Seanse}"
-						AutoGenerateColumns="False"
-						IsReadOnly="True"
-						CanUserResizeColumns="False"
-						Height="250"
-						HorizontalAlignment="Center"
-						SelectedItem="{Binding SelectedSeans}">
-			<dgrid:DataGrid.Columns>
-				<dgrid:DataGridTextColumn Header="Film"
-										  Binding="{Binding Film.Title}"/>
-				<dgrid:DataGridTextColumn Header="Sala"
-										  Binding="{Binding Sala.Name}"/>
-				<dgrid:DataGridTextColumn Header="Data"
-										  Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
-				<dgrid:DataGridTextColumn Header="Cena za bilet"
-										  Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
-			</dgrid:DataGrid.Columns>
-		</dgrid:DataGrid>
-
+						<Button x:Name="PreviewSeansBtn"
+								Content="Podgląd i edycja seansu"
+								IsEnabled="{Binding SelectedSeans, Converter={StaticResource NotNullToBoolConverter}}"
+								HorizontalAlignment="Center"/>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</ScrollViewer>
 	</Grid>
 </UserControl>

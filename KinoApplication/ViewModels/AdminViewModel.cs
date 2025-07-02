@@ -1,23 +1,36 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using KinoApplication.Models;
 using KinoApplication.Services;
+using System.Collections.Generic;
 
 namespace KinoApplication.ViewModels
 {
     public class AdminViewModel : ReactiveObject
     {
-        // --- kolekcje danych ---
+
+        // Logowanie
+        private string _username = "";
+        public string Username { get => _username; set => this.RaiseAndSetIfChanged(ref _username, value); }
+
+        private string _password = "";
+        public string Password { get => _password; set => this.RaiseAndSetIfChanged(ref _password, value); }
+
+        private bool _isAuthenticated = false;
+        public bool IsAuthenticated { get => _isAuthenticated; set => this.RaiseAndSetIfChanged(ref _isAuthenticated, value); }
+
+        public ReactiveCommand<Unit, Unit> LoginCmd { get; }
+
+        // Kolekcje repertuaru
         public ObservableCollection<Film> Films { get; }
         public ObservableCollection<Sala> Sale { get; }
         public ObservableCollection<Seans> Seanse { get; }
 
-        // --- pola dla dodawania nowego filmu ---
+        // Pola do dodawania filmu
         private string _newFilmTitle = "";
         public string NewFilmTitle
         {
@@ -39,7 +52,6 @@ namespace KinoApplication.ViewModels
             set => this.RaiseAndSetIfChanged(ref _newFilmDescription, value);
         }
 
-        // --- wybrany film do edycji ---
         private Film? _selectedFilm;
         public Film? SelectedFilm
         {
@@ -47,9 +59,10 @@ namespace KinoApplication.ViewModels
             set => this.RaiseAndSetIfChanged(ref _selectedFilm, value);
         }
 
-        // --- pola dla dodawania seansu ---
+        // Pola do dodawania seansu
         public Film? NewWybranyFilm { get; set; }
         public Sala? NewWybranaSala { get; set; }
+
         private DateTimeOffset? _dataSeansuDate;
         public DateTimeOffset? DataSeansuDate
         {
@@ -64,7 +77,7 @@ namespace KinoApplication.ViewModels
             set => this.RaiseAndSetIfChanged(ref _dataSeansuTime, value);
         }
 
-        // --- wybrany seans do podglądu ---
+        // Wybrany seans do podglądu/edycji
         private Seans? _selectedSeans;
         public Seans? SelectedSeans
         {
@@ -72,40 +85,49 @@ namespace KinoApplication.ViewModels
             set
             {
                 this.RaiseAndSetIfChanged(ref _selectedSeans, value);
+                if (value != null)
+                {
+                    EditSeansDate = value.Data.Date;
+                    EditSeansTime = value.Data.TimeOfDay;
+                }
                 LoadPreviewSeats();
-                this.RaisePropertyChanged(nameof(TotalSeats));
-                this.RaisePropertyChanged(nameof(BookedSeats));
-                this.RaisePropertyChanged(nameof(OccupancyRate));
             }
         }
 
-        // --- kolekcja rzędów + foteli do podglądu ---
+        // Pola w oknie edycji seansu
+        private DateTimeOffset _editSeansDate;
+        public DateTimeOffset EditSeansDate
+        {
+            get => _editSeansDate;
+            set => this.RaiseAndSetIfChanged(ref _editSeansDate, value);
+        }
+
+        private TimeSpan _editSeansTime;
+        public TimeSpan EditSeansTime
+        {
+            get => _editSeansTime;
+            set => this.RaiseAndSetIfChanged(ref _editSeansTime, value);
+        }
+
+        // Kolekcja rzędów + foteli do podglądu
         public ObservableCollection<RowSeatsViewModel> RowLayoutsPreview { get; }
             = new ObservableCollection<RowSeatsViewModel>();
 
-        // --- dane analityczne ---
-        public int TotalSeats => RowLayoutsPreview.Sum(r => r.SeatsInRow.Count(s => s != null));
-        public int BookedSeats => RowLayoutsPreview.Sum(r => r.SeatsInRow.Count(s => s?.Status == SeatStatus.Booked));
-        public double OccupancyRate => TotalSeats > 0 ? BookedSeats / (double)TotalSeats : 0.0;
-
-        // --- komendy ---
+        // Komendy
         public ReactiveCommand<Unit, Unit> AddFilmCmd { get; }
         public ReactiveCommand<Unit, Unit> SaveSelectedFilmCmd { get; }
         public ReactiveCommand<Unit, Unit> DeleteFilmCmd { get; }
         public ReactiveCommand<Unit, Unit> CancelEditCmd { get; }
         public ReactiveCommand<Unit, Unit> DodajSeansCmd { get; }
+        public ReactiveCommand<Unit, Unit> SaveSeansCmd { get; }
 
         public AdminViewModel()
         {
-            // 1) Wczytaj JSON z repertuarem
             var data = RepertuarService.Load();
-
-            // 2) Inicjalizuj kolekcje
             Films = new ObservableCollection<Film>(data.Films);
             Sale = new ObservableCollection<Sala>(data.Sale);
             Seanse = new ObservableCollection<Seans>(data.Seanse);
 
-            // 3) Jeśli nie było sal w JSON, dodaj domyślne
             if (!Sale.Any())
             {
                 Sale.Add(new Sala { Id = 1, Name = "Sala 1" });
@@ -113,11 +135,9 @@ namespace KinoApplication.ViewModels
                 Sale.Add(new Sala { Id = 3, Name = "Sala 3" });
             }
 
-            // 4) Domyślna data i czas dla nowego seansu
             DataSeansuDate = DateTimeOffset.Now.Date.AddDays(5);
-            DataSeansuTime = new TimeSpan(17, 0, 0);
+            DataSeansuTime = TimeSpan.FromHours(17);
 
-            // 5) Dodawanie filmu
             AddFilmCmd = ReactiveCommand.Create(() =>
             {
                 if (string.IsNullOrWhiteSpace(NewFilmTitle) ||
@@ -133,14 +153,10 @@ namespace KinoApplication.ViewModels
                     Description = NewFilmDescription.Trim()
                 });
 
-                NewFilmTitle = "";
-                NewFilmPrice = "";
-                NewFilmDescription = "";
-
+                NewFilmTitle = NewFilmPrice = NewFilmDescription = "";
                 SaveAll();
             });
 
-            // 6) Zapis edycji filmu
             SaveSelectedFilmCmd = ReactiveCommand.Create(
                 () =>
                 {
@@ -150,17 +166,11 @@ namespace KinoApplication.ViewModels
                 this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
             );
 
-            // 7) Usuwanie filmu
             DeleteFilmCmd = ReactiveCommand.Create(
                 () =>
                 {
-                    if (SelectedFilm is null)
-                        return;
-
-                    // failsafe: jeżeli są seanse tego filmu, nie usuwamy
-                    if (Seanse.Any(s => s.Film.Id == SelectedFilm.Id))
-                        return;
-
+                    if (SelectedFilm is null) return;
+                    if (Seanse.Any(s => s.Film.Id == SelectedFilm.Id)) return;
                     Films.Remove(SelectedFilm);
                     SaveAll();
                     SelectedFilm = null;
@@ -168,13 +178,8 @@ namespace KinoApplication.ViewModels
                 this.WhenAnyValue(vm => vm.SelectedFilm).Select(f => f != null)
             );
 
-            // 8) Anulowanie edycji
-            CancelEditCmd = ReactiveCommand.Create(() =>
-            {
-                SelectedFilm = null;
-            });
+            CancelEditCmd = ReactiveCommand.Create(() => { SelectedFilm = null; });
 
-            // 9) Dodawanie seansu
             DodajSeansCmd = ReactiveCommand.Create(() =>
             {
                 if (NewWybranyFilm is null ||
@@ -193,8 +198,26 @@ namespace KinoApplication.ViewModels
                 SaveAll();
             });
 
-            // 10) ustaw startupowy seans do podglądu
+            SaveSeansCmd = ReactiveCommand.Create(
+                () =>
+                {
+                    if (SelectedSeans == null) return;
+                    SelectedSeans.Data = EditSeansDate.Add(EditSeansTime);
+                    SaveAll();
+                    LoadPreviewSeats();
+                },
+                this.WhenAnyValue(vm => vm.SelectedSeans).Select(s => s != null)
+            );
+
             SelectedSeans = Seanse.FirstOrDefault();
+
+            LoginCmd = ReactiveCommand.Create(() =>
+            {
+                if (Username == "admin" && Password == "admin")
+                    IsAuthenticated = true;
+            },
+            this.WhenAnyValue(x => x.Username, x => x.Password,
+                              (u, p) => !string.IsNullOrWhiteSpace(u) && !string.IsNullOrWhiteSpace(p)));
         }
 
         private void SaveAll()
@@ -212,32 +235,27 @@ namespace KinoApplication.ViewModels
             RowLayoutsPreview.Clear();
             if (SelectedSeans == null) return;
 
-            // layout sali
-            var hall = HallLayoutService.GetLayouts()
+            var hall = HallLayoutService
+                        .GetLayouts()
                         .First(h => h.Id == SelectedSeans.Sala.Id);
 
-            // klucz seansu
             var key = $"{SelectedSeans.Film.Id}_{SelectedSeans.Sala.Id}_{SelectedSeans.Data.ToUnixTimeSeconds()}";
-            // wszystkie rezerwacje
             var booked = BookingService.Load()
-                                .Where(b => b.SeansKey == key)
-                                .ToHashSet(new BookingComparer());
+                         .Where(b => b.SeansKey == key)
+                         .ToHashSet(new BookingComparer());
 
-            // buduj każdy wiersz
             foreach (var row in hall.Rows)
             {
-                var seats = row.SeatColumns
-                    .Select(col =>
-                        col < 0
-                          ? null
-                          : new Seat(row.RowNumber, col,
-                              booked.Any(b => b.Row == row.RowNumber && b.Column == col)
-                                  ? SeatStatus.Booked
-                                  : SeatStatus.Free))
-                    .Cast<Seat?>()
-                    .ToList();
+                var list = row.SeatColumns
+                              .Select(col => col < 0
+                                  ? (Seat?)null
+                                  : new Seat(row.RowNumber, col,
+                                      booked.Any(b => b.Row == row.RowNumber && b.Column == col)
+                                      ? SeatStatus.Booked
+                                      : SeatStatus.Free))
+                              .ToList();
 
-                RowLayoutsPreview.Add(new RowSeatsViewModel(row.RowLetter, seats));
+                RowLayoutsPreview.Add(new RowSeatsViewModel(row.RowLetter, list));
             }
         }
 
@@ -248,6 +266,7 @@ namespace KinoApplication.ViewModels
                    && x.SeansKey == y.SeansKey
                    && x.Row == y.Row
                    && x.Column == y.Column;
+
             public int GetHashCode(Booking b)
                 => HashCode.Combine(b.SeansKey, b.Row, b.Column);
         }
