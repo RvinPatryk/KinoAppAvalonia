@@ -11,11 +11,23 @@ namespace KinoApplication.Views
         {
             InitializeComponent();
 
-            // zamiast Command w XAML, obs³uga w code-behind:
-            WybierzSeansBtn.Click += OpenSeatsWindow;
-            
-            ShowReservationsBtn.Click += (_, __) =>
+            ShowReservationsBtn.Click += OnShowReservations;
+
+            ShowAccountBtn.Click += OnShowAccount;
+        }
+
+        private void OnShowReservations(object? sender, RoutedEventArgs e)
+        {
             ReservationsPanel.IsVisible = !ReservationsPanel.IsVisible;
+            if (ReservationsPanel.IsVisible)
+                AccountPanel.IsVisible = false;
+        }
+
+        private void OnShowAccount(object? sender, RoutedEventArgs e)
+        {
+            AccountPanel.IsVisible = !AccountPanel.IsVisible;
+            if (AccountPanel.IsVisible)
+                ReservationsPanel.IsVisible = false;
         }
 
         private void OpenSeatsWindow(object? sender, RoutedEventArgs e)

@@ -1,11 +1,11 @@
 <UserControl
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
-    xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
-    x:Class="KinoApplication.Views.UserView"
-    x:DataType="vm:UserViewModel"
-    x:CompileBindings="True">
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="clr-namespace:KinoApplication.ViewModels;assembly=KinoApplication"
+  xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+  x:Class="KinoApplication.Views.UserView"
+  x:DataType="vm:UserViewModel"
+  x:CompileBindings="True">
 
 	<UserControl.DataContext>
 		<vm:UserViewModel/>
@@ -13,29 +13,28 @@
 
 	<StackPanel Margin="20" Spacing="10" HorizontalAlignment="Center">
 
-		<!-- 1) Repertuar -->
+		<!-- repertuar -->
 		<TextBlock Text="Repertuar" FontSize="24" HorizontalAlignment="Center"/>
 		<Border BorderBrush="Gray"
 				BorderThickness="1"
 				Padding="10"
 				Margin="0,0,0,10"
-				Width="600"
-				Height="350">
+				Width="600" Height="350">
 			<StackPanel Spacing="10">
 				<dgrid:DataGrid
-					ItemsSource="{Binding Seanse}"
-					AutoGenerateColumns="False"
-					IsReadOnly="True"
-					SelectionMode="Single"
-					SelectedItem="{Binding WybranySeans}"
-					Height="220">
+				  ItemsSource="{Binding Seanse}"
+				  AutoGenerateColumns="False"
+				  IsReadOnly="True"
+				  SelectionMode="Single"
+				  SelectedItem="{Binding WybranySeans}"
+				  Height="220">
 					<dgrid:DataGrid.Columns>
-						<dgrid:DataGridTextColumn Header="Film"  Binding="{Binding Film.Title}"/>
-						<dgrid:DataGridTextColumn Header="Sala"  Binding="{Binding Sala.Name}"/>
+						<dgrid:DataGridTextColumn Header="Film" Binding="{Binding Film.Title}"/>
+						<dgrid:DataGridTextColumn Header="Sala" Binding="{Binding Sala.Name}"/>
 						<dgrid:DataGridTextColumn Header="Data"
-						   Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+												  Binding="{Binding Data, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
 						<dgrid:DataGridTextColumn Header="Cena"
-						   Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
+												  Binding="{Binding Film.Price, StringFormat='${0:0.00}'}"/>
 					</dgrid:DataGrid.Columns>
 				</dgrid:DataGrid>
 
@@ -46,31 +45,27 @@
 			</StackPanel>
 		</Border>
 
-		<!-- 2) Panel użytkownika -->
+		<!-- panel użytkownika -->
 		<TextBlock Text="Panel użytkownika" FontSize="24" HorizontalAlignment="Center"/>
 		<Border BorderBrush="Gray"
 				BorderThickness="1"
 				Padding="10"
 				Margin="0,0,0,10"
-				Width="600"
-				Height="350">
+				Width="600" Height="350">
 			<StackPanel Spacing="10">
-				<!-- Pasek z nazwą i przyciskami -->
+
+				<!-- przyciski -->
 				<StackPanel Orientation="Horizontal"
 							Spacing="10"
 							VerticalAlignment="Center">
-					<TextBlock Text="{Binding CurrentUser, StringFormat=Zalogowany\: {0}}"
-							   FontWeight="Bold"
-							   VerticalAlignment="Center"/>
-					<Button Content="Moje rezerwacje"
-							x:Name="ShowReservationsBtn"/>
-					<Button Content="Moje konto"/>
-					<Button Content="Wyloguj"
-							Background="Red"
-							Foreground="White"/>
+					<TextBlock Text="{Binding Username, StringFormat=Użytkownik\: {0}}"
+							   FontWeight="Bold" VerticalAlignment="Center"/>
+
+					<Button x:Name="ShowReservationsBtn" Content="Moje rezerwacje"/>
+					<Button x:Name="ShowAccountBtn"      Content="Moje konto"/>
 				</StackPanel>
 
-				<!-- Panel rezerwacji -->
+				<!-- moje rezerwacje -->
 				<Border x:Name="ReservationsPanel"
 						BorderBrush="Gray"
 						BorderThickness="1"
@@ -94,8 +89,52 @@
 						</dgrid:DataGrid>
 					</StackPanel>
 				</Border>
+
+				<!-- moje konto / formularz logowania -->
+				<Border x:Name="AccountPanel"
+						BorderBrush="Gray"
+						BorderThickness="1"
+						Padding="10"
+						Margin="0,5,0,0">
+					<StackPanel Spacing="10">
+
+						<!-- 1) Formularz logowania/rejestracji – widoczny gdy ShowLoginPanel == true -->
+						<StackPanel Spacing="6"
+									IsVisible="{Binding ShowLoginPanel}">
+							<TextBlock Text="Zaloguj się lub zarejestruj:" FontSize="18"/>
+							<TextBlock Text="Nazwa użytkownika:"/>
+							<TextBox Text="{Binding LoginUsername}" Watermark="login"/>
+							<TextBlock Text="Hasło:"/>
+							<TextBox Text="{Binding LoginPassword}"
+									 PasswordChar="●"
+									 Watermark="hasło"/>
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Button Content="Zaloguj"
+										Command="{Binding LoginCmd}"
+										IsEnabled="{Binding LoginCmd.CanExecute}"/>
+								<Button Content="Zarejestruj"
+										Command="{Binding RegisterCmd}"
+										IsEnabled="{Binding RegisterCmd.CanExecute}"/>
+							</StackPanel>
+						</StackPanel>
+
+						<!-- 2) Dane konta + Wyloguj – widoczne gdy IsLoggedIn == true -->
+						<StackPanel Spacing="6"
+									IsVisible="{Binding IsLoggedIn}">
+							<TextBlock Text="Moje konto:" FontSize="18"/>
+							<TextBlock Text="{Binding Username, StringFormat=Nazwa użytkownika\: {0}}"/>
+							<TextBlock Text="{Binding Email,    StringFormat=Email\: {0}}"/>
+							<Button Content="Wyloguj"
+									Command="{Binding LogoutCmd}"
+									Background="Red"
+									Foreground="White"
+									HorizontalAlignment="Left"/>
+						</StackPanel>
+
+					</StackPanel>
+				</Border>
+
 			</StackPanel>
 		</Border>
-
 	</StackPanel>
 </UserControl>
