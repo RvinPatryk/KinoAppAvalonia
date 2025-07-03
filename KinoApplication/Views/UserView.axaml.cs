@@ -11,6 +11,8 @@ namespace KinoApplication.Views
         {
             InitializeComponent();
 
+            WybierzSeansBtn.Click += OpenSeatsWindow;
+
             ShowReservationsBtn.Click += OnShowReservations;
 
             ShowAccountBtn.Click += OnShowAccount;
