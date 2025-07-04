@@ -7,8 +7,7 @@
   xmlns:dgrid="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
   x:Class="KinoApplication.Views.AdminView"
   x:DataType="vm:AdminViewModel"
-  x:CompileBindings="True"
-  Background="Black">
+  x:CompileBindings="True">
 
 	<UserControl.Resources>
 		<conv:InverseBooleanConverter x:Key="InverseBool"/>
@@ -61,7 +60,6 @@
 						   Grid.ColumnSpan="2"
 						   Text="Panel Administratora"
 						   FontSize="24"
-						   Foreground="White"
 						   HorizontalAlignment="Center"
 						   Margin="0,0,0,10"/>
 
@@ -70,12 +68,12 @@
 						BorderBrush="Gray" BorderThickness="1"
 						Padding="10" Margin="5">
 					<StackPanel Spacing="6">
-						<TextBlock Text="Dodaj film:" FontWeight="Bold" Foreground="White"/>
-						<TextBlock Text="Tytuł:" Foreground="White"/>
+						<TextBlock Text="Dodaj film:" FontWeight="Bold"/>
+						<TextBlock Text="Tytuł:"/>
 						<TextBox Text="{Binding NewFilmTitle}" Watermark="Tytuł filmu"/>
-						<TextBlock Text="Cena:" Foreground="White"/>
-						<TextBox Text="{Binding NewFilmPrice}" Watermark="Cena (np. 12.50)"/>
-						<TextBlock Text="Opis:" Foreground="White"/>
+						<TextBlock Text="Cena:"/>
+						<TextBox Text="{Binding NewFilmPrice}" Watermark="Cena (np. 12,50)"/>
+						<TextBlock Text="Opis:"/>
 						<TextBox Text="{Binding NewFilmDescription}"
 								 AcceptsReturn="True" Height="60"
 								 Watermark="Krótki opis"/>
@@ -88,14 +86,11 @@
 								<DataTemplate x:DataType="m:Film">
 									<StackPanel>
 										<TextBlock Text="{Binding Title}"
-												   FontWeight="SemiBold"
-												   Foreground="White"/>
-										<TextBlock Text="{Binding Price, StringFormat='${0:0.00}'}"
-												   Foreground="White"/>
+												   FontWeight="SemiBold"/>
+										<TextBlock Text="{Binding Price, StringFormat='${0:0.00}'}"/>
 										<TextBlock Text="{Binding Description}"
 												   FontStyle="Italic"
-												   FontSize="12"
-												   Foreground="White"/>
+												   FontSize="12"/>
 									</StackPanel>
 								</DataTemplate>
 							</ListBox.ItemTemplate>
@@ -113,31 +108,31 @@
 						BorderBrush="Gray" BorderThickness="1"
 						Padding="10" Margin="5">
 					<StackPanel Spacing="6">
-						<TextBlock Text="Dodaj seans:" FontWeight="Bold" Foreground="White"/>
-						<TextBlock Text="Film:" Foreground="White"/>
+						<TextBlock Text="Dodaj seans:" FontWeight="Bold"/>
+						<TextBlock Text="Film:"/>
 						<ComboBox Width="150"
 								  ItemsSource="{Binding Films}"
 								  SelectedItem="{Binding NewWybranyFilm}">
 							<ComboBox.ItemTemplate>
 								<DataTemplate x:DataType="m:Film">
-									<TextBlock Text="{Binding Title}" Foreground="White"/>
+									<TextBlock Text="{Binding Title}"/>
 								</DataTemplate>
 							</ComboBox.ItemTemplate>
 						</ComboBox>
-						<TextBlock Text="Sala:" Foreground="White"/>
+						<TextBlock Text="Sala:"/>
 						<ComboBox Width="120"
 								  ItemsSource="{Binding Sale}"
 								  SelectedItem="{Binding NewWybranaSala}">
 							<ComboBox.ItemTemplate>
 								<DataTemplate x:DataType="m:Sala">
-									<TextBlock Text="{Binding Name}" Foreground="White"/>
+									<TextBlock Text="{Binding Name}"/>
 								</DataTemplate>
 							</ComboBox.ItemTemplate>
 						</ComboBox>
-						<TextBlock Text="Data seansu:" Foreground="White"/>
+						<TextBlock Text="Data seansu:"/>
 						<DatePicker SelectedDate="{Binding DataSeansuDate}"
 									DayFormat="dd" MonthFormat="MMMM" YearFormat="yyyy"/>
-						<TextBlock Text="Godzina:" Foreground="White"/>
+						<TextBlock Text="Godzina:"/>
 						<TimePicker SelectedTime="{Binding DataSeansuTime}"/>
 						<Button Content="Dodaj seans" Command="{Binding DodajSeansCmd}"/>
 					</StackPanel>
@@ -150,7 +145,6 @@
 					<StackPanel>
 						<TextBlock Text="Repertuar"
 								   FontSize="20"
-								   Foreground="White"
 								   HorizontalAlignment="Center"/>
 						<dgrid:DataGrid ItemsSource="{Binding Seanse}"
 										SelectedItem="{Binding SelectedSeans}"
