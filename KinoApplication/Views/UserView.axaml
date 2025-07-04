@@ -11,7 +11,7 @@
 		<vm:UserViewModel/>
 	</UserControl.DataContext>
 
-	<Grid Height="900">
+	<Grid Height="800">
 		<ScrollViewer VerticalScrollBarVisibility="Auto">
 			<StackPanel Margin="20" Spacing="10" HorizontalAlignment="Center">
 
